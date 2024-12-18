@@ -1,0 +1,48 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 5000:5000
+    networks:
+      - my_net
+    environment:
+      DATABASE_URL: postgresql://postgres:example@db:5432/test_db
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - db
+      - redis
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  db:
+    image: postgres:17-alpine
+    hostname: db
+    ports:
+      - 5432:5432
+    networks:
+      - my_net
+    environment:
+      POSTGRES_PASSWORD: example
+      POSTGRES_USER: postgres
+      POSTGRES_DB: test_db
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis/redis-stack-server
+    hostname: redis
+    ports:
+      - 6379:6379
+    networks:
+      - my_net
+
+networks:
+  my_net:
+    driver: bridge
+
+volumes:
+  pgdata:
